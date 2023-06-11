@@ -254,7 +254,10 @@ def run_cnn(dataset_path, epochs=10, batch_size=100, save_frequency=5, verbosity
     cnn_instance = SclerosisCNN(pooling='avg', conv_size=3, use_batch_norm=True, verbosity_level=verbosity)
 
     accuracy_in_training = cnn_instance.initialize_train(
-        msclr_train_dataloader, epochs, save_frequency=save_frequency, batch_size=batch_size, on_cuda=True
+        msclr_train_dataloader, epochs,
+        validation_loader=msclr_test_dataloader,
+        save_frequency=save_frequency,
+        batch_size=batch_size, on_cuda=True
     )
 
     independent_test_accuracy = cnn_instance.test_accuracy(
