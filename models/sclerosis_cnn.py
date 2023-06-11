@@ -243,14 +243,21 @@ def run_cnn(dataset_path, epochs=10, batch_size=100, save_frequency=5, verbosity
     dataset_path = dataset_path
 
     msclr_train_data = datasets.ImageFolder(dataset_path + "\\train", transform=data_transform)
-    msclr_validation_data = datasets.ImageFolder(dataset_path + "\\validation", transform=data_transform)
-
     msclr_train_dataloader = dataloader.DataLoader(msclr_train_data, shuffle=True, batch_size=batch_size)
+
+    msclr_validation_data = datasets.ImageFolder(dataset_path + "\\validation", transform=data_transform)
     msclr_validation_dataloader = dataloader.DataLoader(msclr_validation_data, shuffle=True,  batch_size=batch_size)
+
+    if with_independent_test:
+        msclr_test_data = datasets.ImageFolder(dataset_path + "\\test", transform=data_transform)
+        msclr_test_dataloader = dataloader.DataLoader(msclr_test_data, shuffle=False, batch_size=batch_size)
 
     if verbosity > 1:
         print('Train dataloader: ', len(msclr_train_dataloader), ' batches with ~', batch_size, ' items each', sep='')
-        print('Test dataloader: ', len(msclr_test_dataloader), ' batches with ~', batch_size, ' items each', sep='')
+        print('Validation dataloader: ', len(msclr_validation_dataloader), ' batches with ~', batch_size, ' items each', sep='')
+        if with_independent_test:
+            print('Test dataloader: ', len(msclr_test_dataloader), ' batches with ~', batch_size, ' items each', sep='')
+
     cnn_instance = SclerosisCNN(pooling='avg', conv_size=3, use_batch_norm=True, verbosity_level=verbosity)
 
     accuracy_in_training = cnn_instance.initialize_train(
@@ -260,13 +267,11 @@ def run_cnn(dataset_path, epochs=10, batch_size=100, save_frequency=5, verbosity
         batch_size=batch_size, on_cuda=True
     )
 
+    independent_test_accuracy = None
     if with_independent_test:
-        msclr_test_data = datasets.ImageFolder(dataset_path + "\\test", transform=data_transform)
-        msclr_test_dataloader = dataloader.DataLoader(msclr_test_data, shuffle=False, batch_size=batch_size)
-
-    independent_test_accuracy = cnn_instance.test_accuracy(
-        msclr_test_dataloader, on_cuda=True
-    ) if with_independent_test else None
+        independent_test_accuracy = cnn_instance.test_accuracy(
+            msclr_test_dataloader, on_cuda=True
+        )
 
     # Freeing the instance and cache after learning
     del cnn_instance
