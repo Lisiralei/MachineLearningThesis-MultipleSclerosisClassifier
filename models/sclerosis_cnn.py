@@ -221,7 +221,7 @@ class SclerosisCNN(torch.nn.Module):
         return classes, acc
 
 
-def run_cnn(epochs=10, batch_size=100, save_frequency=5, verbosity=0, with_independent_test=False):
+def run_cnn(dataset_path, epochs=10, batch_size=100, save_frequency=5, verbosity=0, with_independent_test=False):
     import os
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:32"
 
@@ -240,7 +240,7 @@ def run_cnn(epochs=10, batch_size=100, save_frequency=5, verbosity=0, with_indep
     torch.cuda.manual_seed(0)
     torch.backends.cudnn.deterministic = True
 
-    dataset_path = 'D:\\Machine Learning Data\\MultipleSclerosisTest'
+    dataset_path = dataset_path
 
     msclr_train_data = datasets.ImageFolder(dataset_path + "\\train", transform=data_transform)
     msclr_test_data = datasets.ImageFolder(dataset_path + "\\validation", transform=data_transform)

@@ -7,4 +7,5 @@ from models import sclerosis_cnn
 if __name__ == '__main__':
     #data_manipulation.cleanup('D:\\Machine Learning Data\\MultipleSclerosisTest')
 
-    print(sclerosis_cnn.run_cnn(epochs=10, batch_size=16, save_frequency=5, verbosity=2))
+    dataset_path = 'D:\\Machine Learning Data\\MultipleSclerosisTest'
+    print(sclerosis_cnn.run_cnn(dataset_path, epochs=10, batch_size=16, save_frequency=5, verbosity=2))
