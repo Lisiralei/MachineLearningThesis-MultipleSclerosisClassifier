@@ -164,7 +164,7 @@ class SclerosisCNN(torch.nn.Module):
 
             if validation_loader:
                 accuracy_history.append(
-                    self.test_accuracy(validation_loader, batch_size=batch_size, on_cuda=on_cuda)
+                    self.test_accuracy(validation_loader, on_cuda=on_cuda)
                 )
 
         print('---------------')
@@ -180,7 +180,7 @@ class SclerosisCNN(torch.nn.Module):
 
         return accuracy_history
 
-    def test_accuracy(self, test_loader, batch_size, classes=('no', 'yes'), on_cuda=False):
+    def test_accuracy(self, test_loader, classes=('no', 'yes'), on_cuda=False):
         if on_cuda:
             device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
             self.to(device)
@@ -243,10 +243,12 @@ def run_cnn(dataset_path, epochs=10, batch_size=100, save_frequency=5, verbosity
     dataset_path = dataset_path
 
     msclr_train_data = datasets.ImageFolder(dataset_path + "\\train", transform=data_transform)
-    msclr_test_data = datasets.ImageFolder(dataset_path + "\\validation", transform=data_transform)
+    msclr_validation_data = datasets.ImageFolder(dataset_path + "\\validation", transform=data_transform)
+    msclr_test_data = datasets.ImageFolder(dataset_path + "\\test", transform=data_transform)
 
     msclr_train_dataloader = dataloader.DataLoader(msclr_train_data, shuffle=True, batch_size=batch_size)
-    msclr_test_dataloader = dataloader.DataLoader(msclr_test_data, shuffle=True,  batch_size=batch_size)
+    msclr_validation_dataloader = dataloader.DataLoader(msclr_validation_data, shuffle=True,  batch_size=batch_size)
+    msclr_test_dataloader = dataloader.DataLoader(msclr_test_data, shuffle=False,  batch_size=batch_size)
 
     if verbosity > 1:
         print('Train dataloader: ', len(msclr_train_dataloader), ' batches with ~', batch_size, ' items each', sep='')
@@ -255,14 +257,19 @@ def run_cnn(dataset_path, epochs=10, batch_size=100, save_frequency=5, verbosity
 
     accuracy_in_training = cnn_instance.initialize_train(
         msclr_train_dataloader, epochs,
-        validation_loader=msclr_test_dataloader,
+        validation_loader=msclr_validation_dataloader,
         save_frequency=save_frequency,
         batch_size=batch_size, on_cuda=True
     )
 
     independent_test_accuracy = cnn_instance.test_accuracy(
-        msclr_test_dataloader, batch_size=batch_size, on_cuda=True
+        msclr_test_dataloader, on_cuda=True
     ) if with_independent_test else None
+
+    # Freeing the instance and cache after learning
+    del cnn_instance
+    with torch.no_grad():
+        torch.cuda.empty_cache()
 
     return accuracy_in_training, independent_test_accuracy
 
