@@ -1,6 +1,9 @@
-import dicom2jpg
+
 import os
 from datetime import datetime
+
+import pandas as pd
+import dicom2jpg
 
 
 def data_to_png(source_directory, target_directory):
@@ -79,14 +82,15 @@ def cleanup(path_source):
 # data_manipulation.cleanup('D:\\Machine Learning Data\\Multiple Sclerosis pngs')
 
 
-def set_flag(directory, count_seed=0, flag=None):
+def set_flag(directory, target_directory, count_seed=0):
     images = os.listdir(directory)
     count = count_seed
     for image in images:
         image_path = os.path.join(directory, image)
-        now = datetime.now()
-        unique_id = now.strftime('%H%M%S') + '_' + str(count)
-        new_image_name = os.path.join(directory, flag + "_" + unique_id + "_" + image)
+
+        unique_id = str(count)
+
+        new_image_name = os.path.join(target_directory, unique_id + '.png')
         print("Image:", image_path, "\twill be renamed to:", new_image_name)
         os.rename(image_path, new_image_name)
         count += 1
@@ -96,4 +100,32 @@ def set_flag(directory, count_seed=0, flag=None):
 # last_count = data_manipulation.set_flag('D:\\Machine Learning Data\\MultipleSclerosisTest\\yes', 0,  'yes')
 
 
+def set_flag_for_all(directory, flag_source, classes=('no', 'yes')):
+    for class_name in classes:
+        if not os.path.exists(os.path.join(directory, class_name)):
+            os.mkdir(os.path.join(directory, class_name))
+    clients = os.listdir(directory)
+    class_count = dict([(class_name, 0) for class_name in classes])
+    for client_folder in clients:
+        if client_folder in flag_source:
+            print(f'Folder: {client_folder}, label: {flag_source[client_folder]}')
+            client_folder_path = os.path.join(directory, client_folder)
+            class_folder = 'no' if flag_source[client_folder] == 0 else 'yes'
+            print(flag_source[client_folder] == 0)
+            class_folder_path = os.path.join(directory, class_folder)
+            print(f'Folder will be unpacked into class {class_folder} at {class_folder_path}')
+            current_count = set_flag(client_folder_path, class_folder_path, class_count[class_folder])
+            class_count[class_folder] = current_count
+
+
+def excel_to_label(excel_file_path):
+    labels = dict()
+    label_excel = pd.read_excel(excel_file_path)
+    #print(label_excel)
+    for index, row in label_excel.iterrows():
+        #print(f'Name: {row[0]}, label: {row[1]}')
+        labels[str(row[0])] = int(row[1])
+
+
+    return labels
 
