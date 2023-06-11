@@ -201,7 +201,7 @@ class SclerosisCNN(torch.nn.Module):
                 n_samples += labels.size(0)
                 n_correct += (predicted == labels).sum().item()
 
-                for i in range(batch_size):
+                for i in range(len(images)):
                     label = labels[i]
                     prediction = predicted[i]
                     if label == prediction:
@@ -213,7 +213,7 @@ class SclerosisCNN(torch.nn.Module):
             if self.verbosity_level > 0:
                 print(f'Accuracy of the network: {acc["general"]} %')
 
-            for i in range(2):
+            for i in range(len(classes)):
                 acc[classes[i]] = 100.0 * n_class_correct[i] / n_class_samples[i]
                 if self.verbosity_level > 0:
                     print(f'Accuracy of {classes[i]}: {acc[classes[i]]} %')
