@@ -1,10 +1,13 @@
 import random
-from datetime import datetime
+import time
 import os
 
-import torch
 import matplotlib.pyplot as plt
 import numpy as np
+
+import torch
+
+from datetime import datetime
 
 from torchvision import datasets, transforms
 from torch.utils.data import dataloader
@@ -258,15 +261,19 @@ def run_cnn(dataset_path, epochs=10, batch_size=100, save_frequency=5, verbosity
         if with_independent_test:
             print('Test dataloader: ', len(msclr_test_dataloader), ' batches with ~', batch_size, ' items each', sep='')
 
+
     cnn_instance = SclerosisCNN(pooling='avg', conv_size=3, use_batch_norm=True, verbosity_level=verbosity)
 
+    start_run = time.time()
     accuracy_in_training = cnn_instance.initialize_train(
         msclr_train_dataloader, epochs,
         validation_loader=msclr_validation_dataloader,
         save_frequency=save_frequency,
         batch_size=batch_size, on_cuda=True
     )
-
+    end_run = time.time()
+    time_running = start_run - end_run
+    print(f"The learning took {time_running} seconds to complete")
     independent_test_accuracy = None
     if with_independent_test:
         independent_test_accuracy = cnn_instance.test_accuracy(
